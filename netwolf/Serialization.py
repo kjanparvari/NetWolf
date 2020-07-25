@@ -49,7 +49,8 @@ def deserialize(s):
             for i in range(1, len(lst)):
                 info = lst[i].split(':')
                 members.append(Member(info[0], info[1]))
-            return DiscoveryMessage(members)
+            d = DiscoveryMessage(members)
+            return d
         else:
             pass
     except Exception as e:

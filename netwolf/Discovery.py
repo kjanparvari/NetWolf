@@ -43,6 +43,9 @@ class DiscoveryManager(object):
         self._timer_thread = threading.Thread(target=self.timer)
         self._timer_thread.start()
 
+        self._queue_thread = threading.Thread(target=self._check_queue)
+        self._queue_thread.start()
+
     def enqueue(self, msg: DiscoveryMessage):
         self._receive_queue.append(msg)
 
@@ -56,7 +59,7 @@ class DiscoveryManager(object):
         return self._PERIOD
 
     def _send(self, dest, lst):
-        self._send_connection.send(dest.getIp().packed, lst)
+        self._send_connection.send(str(dest.getIp()), lst)
 
     def setPeriod(self, p):
         self._PERIOD = p
@@ -68,5 +71,7 @@ class DiscoveryManager(object):
             friends = self._manager.get_member_manager().get_friend_list()
             for f in friends:
                 lst = self._manager.get_member_manager().get_sendable_list(f)
+                print("[Discovery Client]: Sending list to\n{}".format(str(f)))
+                print(self._manager.get_member_manager().printList(lst))
                 t = threading.Thread(target=self._send, args=(f, lst))
                 t.start()

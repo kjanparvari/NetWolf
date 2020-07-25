@@ -36,8 +36,8 @@ class MembersManager(object):
         self._manager = manager
         self._membersList: List[Member] = []
         self._readList()
-        # self._membersList.append(self.get_current_member())
-        # self._saveList()
+        self.updateList([self.get_current_member()])
+        self._saveList()
 
     def _merge(self, new_list: List[Member]):
         for m in new_list:
@@ -115,6 +115,7 @@ class MembersManager(object):
         return Member(name, ip)
 
     def get_sendable_list(self, dest: Member):
+        print("Preparing List to send to\n{}".format(str(dest)))
         lst = self._membersList.copy()
         lst.remove(dest)
         # lst.remove(self.get_current_member())
