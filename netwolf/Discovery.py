@@ -32,13 +32,9 @@ class DiscoveryMessage(object):
 class DiscoveryManager(object):
     _PERIOD = 10 * 1  # sec
 
-    def __init__(self, manager, udp_server, udp_client):
+    def __init__(self, manager):
         self._manager = manager
         self._receive_queue = []
-
-        from netwolf.udp import UdpServer, UdpClient
-        self._send_connection: UdpClient = udp_client
-        self._receive_connection: UdpServer = udp_server
 
         self._timer_thread = threading.Thread(target=self.timer)
         self._timer_thread.start()
@@ -52,14 +48,16 @@ class DiscoveryManager(object):
     def _check_queue(self):
         while True:
             if len(self._receive_queue) != 0:
+                print(["[Discovery]: Got a Message"])
                 d: DiscoveryMessage = self._receive_queue.pop(0)
                 self._manager.get_member_manager().updateList(d.get_members())
 
     def getPeriod(self):
         return self._PERIOD
 
-    def _send(self, dest, lst):
-        self._send_connection.send(str(dest.getIp()), lst)
+    # def _send(self, dest, lst):
+    #     msg = DiscoveryMessage(lst)
+    #     self._manager.get_udp_client().send(str(dest.getIp()), msg)
 
     def setPeriod(self, p):
         self._PERIOD = p
@@ -69,9 +67,10 @@ class DiscoveryManager(object):
             time.sleep(self._PERIOD)
             print("[Discovery Client]: Time to send")
             friends = self._manager.get_member_manager().get_friend_list()
-            for f in friends:
-                lst = self._manager.get_member_manager().get_sendable_list(f)
-                print("[Discovery Client]: Sending list to\n{}".format(str(f)))
-                print(self._manager.get_member_manager().printList(lst))
-                t = threading.Thread(target=self._send, args=(f, lst))
-                t.start()
+            msg = DiscoveryMessage(friends)
+            self._manager.broadcast(msg)
+            # friends = self._manager.get_member_manager().get_friend_list()
+            # for f in friends:
+            #     lst = self._manager.get_member_manager().get_sendable_list(f)
+            #     print("[Discovery Client]: Sending list to {}".format(f.getName()))
+            #     self._send(f, lst)

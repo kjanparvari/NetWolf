@@ -31,6 +31,7 @@ def deserialize(s):
             if i % 3 == 0:
                 _bits[i] = not _bits[i]
         _bytes = _bits.bytes
+        print(str(_bytes, 'utf-8'))
         lst = str(_bytes, 'utf-8').split("$$$")
         if lst[0] == 'mem':
             res = []

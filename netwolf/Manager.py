@@ -8,7 +8,7 @@ class Manager(object):
         from netwolf.Discovery import DiscoveryManager
         self._udp_server = UdpServer(self)
         self._udp_client = UdpClient(self)
-        self._discovery_manager = DiscoveryManager(self, self._udp_server, self._udp_client)
+        self._discovery_manager = DiscoveryManager(self)
         self._member_manager = MembersManager(self)
 
     def setup(self):
@@ -19,6 +19,14 @@ class Manager(object):
 
     def get_discovery_manager(self):
         return self._discovery_manager
+
+    def get_udp_client(self):
+        return self._udp_client
+
+    def broadcast(self, obj):
+        friends = self._member_manager.get_friend_list()
+        for f in friends:
+            self._udp_client.send(str(f.getIp()), obj)
 
     def tmp(self):
         from netwolf.Serialization import serialize, deserialize
@@ -32,4 +40,3 @@ class Manager(object):
         # self._member_manager.remove_friend_list()
         # self._member_manager.printList()
         pass
-

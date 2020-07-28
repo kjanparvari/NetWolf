@@ -92,7 +92,7 @@ class MembersManager(object):
 
     def get_friend_list(self) -> List[Member]:
         lst = self._membersList.copy()
-        # lst.remove(self.get_current_member())
+        lst.remove(self.get_current_member())
         return lst
 
     def printList(self, lst: List[Member] = None):
@@ -114,9 +114,8 @@ class MembersManager(object):
         ip = socket.gethostbyname(name)
         return Member(name, ip)
 
-    def get_sendable_list(self, dest: Member):
-        print("Preparing List to send to\n{}".format(str(dest)))
-        lst = self._membersList.copy()
-        lst.remove(dest)
-        # lst.remove(self.get_current_member())
-        return lst
+    # def get_sendable_list(self, dest: Member):
+    #     lst = self._membersList.copy()
+    #     lst.remove(dest)
+    #     # lst.remove(self.get_current_member())
+    #     return lst
