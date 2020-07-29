@@ -107,15 +107,6 @@ class MembersManager(object):
             print(mem)
             print("----------------")
 
-    @staticmethod
-    def get_current_member() -> Member:
-        import socket
-        name = socket.gethostname()
-        ip = socket.gethostbyname(name)
+    def get_current_member(self) -> Member:
+        name, ip = self._manager.get_host_info()
         return Member(name, ip)
-
-    # def get_sendable_list(self, dest: Member):
-    #     lst = self._membersList.copy()
-    #     lst.remove(dest)
-    #     # lst.remove(self.get_current_member())
-    #     return lst

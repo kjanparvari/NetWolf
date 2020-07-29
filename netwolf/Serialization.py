@@ -23,15 +23,14 @@ def serialize(obj):
     return result
 
 
-def deserialize(s):
+def deserialize(message):
     try:
         from netwolf.Members import Member
-        _bits = BitArray(s)
+        _bits = BitArray(message)
         for i in range(0, len(_bits)):
             if i % 3 == 0:
                 _bits[i] = not _bits[i]
         _bytes = _bits.bytes
-        print(str(_bytes, 'utf-8'))
         lst = str(_bytes, 'utf-8').split("$$$")
         if lst[0] == 'mem':
             res = []
@@ -44,6 +43,7 @@ def deserialize(s):
                 return res[0]
             else:
                 return res
+
         elif lst[0] == 'dis':
             from netwolf.Discovery import DiscoveryMessage
             members: List[Member] = []
@@ -52,6 +52,20 @@ def deserialize(s):
                 members.append(Member(info[0], info[1]))
             d = DiscoveryMessage(members)
             return d
+
+        elif lst[0] == 'get':
+            from netwolf.FileRequests import GetMessage
+            msg = GetMessage(lst[1])
+            return msg
+
+        elif lst[0] == 'res':
+            from netwolf.FileRequests import ResMessage
+            msg = ResMessage(int(lst[1]))
+            return msg
+
+        elif lst[0] == 'snd':
+            pass
+
         else:
             pass
     except Exception as e:

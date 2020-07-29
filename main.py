@@ -1,11 +1,11 @@
 import socket
 from netwolf import Manager
+import time
 
 
 def main():
-    # Manager.Manager()
-    from netwolf.FileManager import FileManager
-    fm = FileManager()
+    Manager.Manager()
+    pass
 
 
 if __name__ == '__main__':

@@ -6,13 +6,30 @@ class Manager(object):
         from netwolf.udp import UdpClient, UdpServer
         from netwolf.Members import MembersManager
         from netwolf.Discovery import DiscoveryManager
+        from netwolf.FileManager import FileManager
+        from netwolf.tcp import TcpClient, TcpServer
+
         self._udp_server = UdpServer(self)
         self._udp_client = UdpClient(self)
+        self._tcp_server = TcpServer(self)
+        self._tcp_client = TcpClient(self)
         self._discovery_manager = DiscoveryManager(self)
         self._member_manager = MembersManager(self)
+        self._file_manager = FileManager(self)
+        # self._tcp_client.reserve_port()
 
     def setup(self):
         pass
+
+    def get_file_manager(self):
+        return self._file_manager
+
+    @staticmethod
+    def get_host_info():
+        import socket
+        name = socket.gethostname()
+        addr = socket.gethostbyname(name)
+        return name, addr
 
     def get_member_manager(self):
         return self._member_manager
@@ -22,6 +39,12 @@ class Manager(object):
 
     def get_udp_client(self):
         return self._udp_client
+
+    def get_tcp_client(self):
+        return self._tcp_client
+
+    def get_tcp_server(self):
+        return self._tcp_server
 
     def broadcast(self, obj):
         friends = self._member_manager.get_friend_list()

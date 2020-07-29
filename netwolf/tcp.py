@@ -8,21 +8,21 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 
 class TcpServer(object):
 
-    def __init__(self):
-        server_address = socket.gethostbyname(socket.gethostname()),
-        self._server_info = (server_address, PORT)
+    def __init__(self, manager):
+        self._manager = manager
+
+    def _setup(self, port):
+        print("[TCP Server] server is starting...")
+        server_address = socket.gethostbyname(socket.gethostname())
+        self._server_info = (server_address, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind(self._server_info)
-        self._thread = threading.Thread(target=self._setup())
-        self._thread.start()
-
-    def _setup(self):
-        print("[STARTING] server is starting...")
-        self._start()
+        threading.Thread(target=self._start).start()
 
     @staticmethod
     def _handle_client(conn, addr):
         print(f"[NEW CONNECTION] {addr} connected.")
+
         connected = True
         while connected:
             msg_length = conn.recv(HEADER).decode(FORMAT)
@@ -52,11 +52,26 @@ class TcpServer(object):
 
 class TcpClient(object):
 
-    def __init__(self):
+    def __init__(self, manager):
+        self._manager = manager
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._reserved_ports = []
 
-    def send(self, server_address, message):
-        server_info = server_address, PORT
+    def reserve_port(self) -> int:
+        with socket.socket() as s:
+            s.bind(('', 0))
+            port = s.getsockname()[1]
+            if self._reserved_ports.__contains__(port):
+                return self.reserve_port()
+            else:
+                print("[TCP Client]: port " + str(port) + " is reserved")
+                return port
+
+    def remove_reserved_port(self, port):
+        self._reserved_ports.remove(port)
+
+    def send(self, server_address, port, message):
+        server_info = server_address, port
         self._socket.connect(server_info)
         message = message.encode(FORMAT)
         msg_length = len(message)

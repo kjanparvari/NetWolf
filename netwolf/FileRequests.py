@@ -13,8 +13,12 @@ class GetMessage(object):
 
 class ResMessage(object):
 
-    def __init__(self):
-        self._port: int
+    def __init__(self, port: int):
+        self._port = port
 
     def __bytes__(self):
-        s = "res$$$" + self._port
+        s = "res$$$" + str(self._port)
+        return bytes(s, 'utf-8')
+
+    def get_port(self):
+        return self._port
