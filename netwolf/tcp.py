@@ -23,8 +23,7 @@ class TcpServer(object):
         self._socket.bind(self._server_info)
         self._start(file)
 
-    @staticmethod
-    def _handle_client(conn, addr, file=None):
+    def _handle_client(self, conn, addr, file=None):
         print(f"[TCP Server]: New connection from {addr} ")
         connected = True
         while connected:
@@ -40,6 +39,8 @@ class TcpServer(object):
                 print(f"[{addr}] {msg}")
                 conn.send("[TCP]: File transmission was successfull".encode(FORMAT))
         conn.close()
+        self._socket.close()
+        self._manager.get_file_manager().receiving_file_finished()
 
     def _start(self, file):
         self._socket.listen()

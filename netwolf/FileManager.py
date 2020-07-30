@@ -55,38 +55,46 @@ class FileManager(object):
             if (time.time() - self._sent_time) > self._MAX_WAIT_TIME:
                 self._waiting_for_res = False
                 self._choose_sender()
+                break
 
     def _choose_sender(self):
         if len(self._senders) == 0:
-            print("No one had requested file ...")
-            return
+            print("[File Manager]: No one had requested file ...")
+            self.receiving_file_finished()
+            return False
         else:
             min_time = self._MAX_WAIT_TIME
             chosen_one = None
-            chosen_port = -1
+            chosen_port: int = -1
             for t in self._senders:
                 if t[2] < min_time:
                     min_time = t[2]
                     chosen_one = t[0]
                     chosen_port = t[1]
             self._send_snd_message(chosen_one, chosen_port)
+            return True
 
-    def send_get_message(self, filename):
+    def request_file(self, filename):
         if not self._get_msg_lock:
+            print(f"[File Manager]: Requesting for {filename}")
             self._get_msg_lock = True
             self._requested_filename = filename
             self._senders.clear()
+            self._send_get_message(filename)
+            self._waiting_for_res = True
             self._set_sent_time()
             self._start_timer()
-            from netwolf.FileRequests import GetMessage
-            msg = GetMessage(filename)
-            self._manager.broadcast(msg)
-            self._waiting_for_res = True
         else:
-            print("[Error]: Already waiting for another file ...")
+            print("[File Manager]: Already waiting for another file ...")
             return
 
+    def _send_get_message(self, filename):
+        from netwolf.FileRequests import GetMessage
+        msg = GetMessage(filename)
+        self._manager.broadcast(msg)
+
     def receive_get_message(self, msg, sender_addr):
+        print(f"[File Manager]: {sender_addr} requested for a file named {msg.get_file_name()}")
         filename = msg.get_file_name()
         if self.exists(filename):
             port = self._manager.get_udp_client().reserve_port()
@@ -97,29 +105,44 @@ class FileManager(object):
             self._send_res_message(sender_addr, res)
 
     def _send_res_message(self, dest_addr, msg):
+        print(f"[File Manager]: telling {dest_addr} that requested file is existing")
         self._manager.get_udp_client().send(str(dest_addr), msg)
 
     def receive_res_message(self, msg, sender_addr):
+        print(f"[File Manager]: {sender_addr} had requested file (requested port: {msg.get_port()}).")
         if self._waiting_for_res:
             rt = time.time() - self._sent_time
             port = msg.get_port()
             info = sender_addr, port, rt
             self._senders.append(info)
         else:
-            print("[Error]: Response message arrived too late ...")
+            print("[File Manager]: Response message arrived too late ...")
 
     def _send_snd_message(self, dest_addr, port):
+        print(f"[File Manager]: sending file ({self._requested_filename}) to {dest_addr} on port {port}")
         from netwolf.FileRequests import SndMessage
         msg = SndMessage()
         self._manager.get_udp_client().send(str(dest_addr), msg)
         self._manager.get_tcp_server(0).get_file(dest_addr, port, self._requested_filename)
 
     def receive_snd_message(self, sender_addr):
+
         found = False
         for t in self._requests:
             if t[1] == sender_addr:
                 found = True
                 self._manager.get_tcp_client().send_file(t[1], t[2], t[0])
+                print(
+                    f"[File Manager]: {sender_addr} will send the requested file ({self._requested_filename}) on port {t[2]}")
+                break
         if not found:
             print("[Error]: error occurred in finding requested file")
             return
+
+    def receiving_file_finished(self):
+        print(f"[File Manager]: terminating request for file.")
+        self._get_msg_lock = False
+        self._requested_filename = ""
+        self._senders.clear()
+        self._sent_time: time = None
+        self._waiting_for_res = False
