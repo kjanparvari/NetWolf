@@ -69,6 +69,8 @@ def deserialize(message):
             return msg
 
         else:
+            # str(_bytes, 'utf-8')
             pass
-    except Exception as e:
+
+    except Exception:
         traceback.print_exc()

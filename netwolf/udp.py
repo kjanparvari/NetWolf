@@ -38,15 +38,19 @@ class UdpServer:
     def _setup_messages_server(self):
         print("[UDP Messages Server]: Starting...")
         from netwolf.Serialization import deserialize
-        from netwolf.FileRequests import GetMessage, ResMessage
+        from netwolf.FileRequests import GetMessage, ResMessage, SndMessage
         while True:
-            msg, addr = self._messages_socket.recvfrom(512)  # buffer size is 512 bytes
+            msg, (addr, port) = self._messages_socket.recvfrom(512)  # buffer size is 512 bytes
             print("[UDP Messages Server]: New Message Connection from {}".format(addr))
             res = deserialize(msg)
             if isinstance(res, GetMessage):
                 self._manager.get_file_manager().receive_get_message(res, addr)
             elif isinstance(res, ResMessage):
                 self._manager.get_file_manager().receive_res_message(res, addr)
+            elif isinstance(res, SndMessage):
+                self._manager.get_file_manager().receive_snd_message(addr)
+            else:
+                print(f"[UDP Server]: Unknown Message : {res}")
 
 
 class UdpClient:
