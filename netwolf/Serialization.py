@@ -64,7 +64,9 @@ def deserialize(message):
             return msg
 
         elif lst[0] == 'snd':
-            pass
+            from netwolf.FileRequests import SndMessage
+            msg = SndMessage()
+            return msg
 
         else:
             pass

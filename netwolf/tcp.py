@@ -11,18 +11,21 @@ class TcpServer(object):
     def __init__(self, manager):
         self._manager = manager
 
-    def _setup(self, port):
-        print("[TCP Server] server is starting...")
+    def get_file(self, sender_addr, port, filename):
+        f = self._manager.get_file_manager().create_file(filename)
+        threading.Thread(target=self._setup, args=(f, port)).start()
+
+    def _setup(self, file, port):
+        print(f"[TCP Server] server is starting on port {port}...")
         server_address = socket.gethostbyname(socket.gethostname())
         self._server_info = (server_address, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind(self._server_info)
-        threading.Thread(target=self._start).start()
+        self._start(file)
 
     @staticmethod
-    def _handle_client(conn, addr):
-        print(f"[NEW CONNECTION] {addr} connected.")
-
+    def _handle_client(conn, addr, file=None):
+        print(f"[TCP Server]: New connection from {addr} ")
         connected = True
         while connected:
             msg_length = conn.recv(HEADER).decode(FORMAT)
@@ -31,23 +34,19 @@ class TcpServer(object):
                 msg = conn.recv(msg_length).decode(FORMAT)
                 if msg == DISCONNECT_MESSAGE:
                     connected = False
-
+                else:
+                    file.write(msg)
+                file.close()
                 print(f"[{addr}] {msg}")
-                conn.send("Msg received".encode(FORMAT))
-
+                conn.send("[TCP]: File transmission was successfull".encode(FORMAT))
         conn.close()
 
-    def _start(self):
+    def _start(self, file):
         self._socket.listen()
-        print(f"[LISTENING] Server is listening on {self._server_info[0]}")
+        print(f"[TCP Server]: Server is listening on {self._server_info[0]}")
         while True:
             conn, addr = self._socket.accept()
-            thread = threading.Thread(target=self._handle_client, args=(conn, addr))
-            thread.start()
-            print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
-
-    def _find_port(self):
-        pass
+            threading.Thread(target=self._handle_client, args=(conn, addr, file)).start()
 
 
 class TcpClient(object):
@@ -70,8 +69,13 @@ class TcpClient(object):
     def remove_reserved_port(self, port):
         self._reserved_ports.remove(port)
 
-    def send(self, server_address, port, message):
+    def send_file(self, dest_addr, port, filename):
+        f = self._manager.get_file_manager().get_file(filename)
+        threading.Thread(target=self._send, args=(dest_addr, port, f)).start()
+
+    def _send(self, server_address, port, file):
         server_info = server_address, port
+        message = file.read()
         self._socket.connect(server_info)
         message = message.encode(FORMAT)
         msg_length = len(message)
@@ -80,3 +84,13 @@ class TcpClient(object):
         self._socket.send(send_length)
         self._socket.send(message)
         print(self._socket.recv(2048).decode(FORMAT))
+
+        message = DISCONNECT_MESSAGE.encode(FORMAT)
+        msg_length = len(message)
+        send_length = str(msg_length).encode(FORMAT)
+        send_length += b' ' * (HEADER - len(send_length))
+        self._socket.send(send_length)
+        self._socket.send(message)
+        print(self._socket.recv(2048).decode(FORMAT))
+
+        file.close()

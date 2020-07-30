@@ -22,3 +22,10 @@ class ResMessage(object):
 
     def get_port(self):
         return self._port
+
+
+class SndMessage(object):
+
+    def __bytes__(self):
+        s = "snd$$$"
+        return bytes(s, 'utf-8')
