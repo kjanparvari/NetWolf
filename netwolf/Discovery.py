@@ -10,7 +10,9 @@ class DiscoveryMessage(object):
         self._members: List[Member] = members
 
     def __str__(self):
-        s = ""
+        s = "Discovery Message consisting members:"
+        if len(self._members) > 0:
+            s += "\n" + "----------------" + '\n'
         for m in self._members:
             s += str(m) + "\n" + "----------------" + '\n'
         return s

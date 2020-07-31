@@ -58,9 +58,9 @@ class Manager(object):
         #            Member("member 3", "192.168.1.3"),
         #            Member("member 4", "192.168.1.4"), Member("member 5", "192.168.1.5"),
         #            Member("member 6", "192.168.1.6")]
-        # members = [Member("Leviathan", "192.168.1.102")]
+        # members = [Member("Leviathan", "192.168.1.105")]
         # self._member_manager.updateList(new_list=members)
         # self._member_manager.remove_friend_list()
         # self._member_manager.printList()
-        self._file_manager.request_file("a.txt")
+        # self._file_manager.request_file("a.txt")
         pass

@@ -1,8 +1,11 @@
+import struct
 import threading
 import socket
 
 UDP_DISCOVERY_PORT = 7440
 UDP_MESSAGE_PORT = 7880
+MCAST_GRP = '224.1.1.1'
+MULTICAST_TTL = 2
 
 
 class UdpServer:
@@ -12,20 +15,24 @@ class UdpServer:
 
         # setting up discovery server
         host_info = socket.gethostbyname(socket.gethostname()), UDP_DISCOVERY_PORT
-        self._discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self._discovery_socket.bind(host_info)
-        self._thread = threading.Thread(target=self._setup_discovery_server)
-        self._thread.start()
+
+        # self._discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self._discovery_socket.bind(('', UDP_DISCOVERY_PORT))
+        # mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
+        # self._discovery_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+        threading.Thread(target=self._setup_discovery_server).start()
 
         # setting up messages server
         host_info = socket.gethostbyname(socket.gethostname()), UDP_MESSAGE_PORT
         self._messages_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._messages_socket.bind(host_info)
-        self._thread = threading.Thread(target=self._setup_messages_server)
-        self._thread.start()
+        threading.Thread(target=self._setup_messages_server).start()
 
     def _setup_discovery_server(self):
-        print("[UDP Discovery Server]: Starting...")
+        print("[UDP Discovery Server]: Starting ...")
         from netwolf.Serialization import deserialize
         from netwolf.Discovery import DiscoveryMessage
         while True:
@@ -34,6 +41,8 @@ class UdpServer:
             res = deserialize(msg)
             if isinstance(res, DiscoveryMessage):
                 self._manager.get_discovery_manager().enqueue(res)
+            else:
+                print(f"[UDP Server]: Unknown Message : {res}")
 
     def _setup_messages_server(self):
         print("[UDP Messages Server]: Starting...")
@@ -62,7 +71,6 @@ class UdpClient:
 
     @staticmethod
     def _send(server_addr, message):
-
         from netwolf.Discovery import DiscoveryMessage
         port: int
         if isinstance(message, DiscoveryMessage):
@@ -71,8 +79,12 @@ class UdpClient:
             port = UDP_MESSAGE_PORT
         else:
             return
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_info = server_addr, port
+
+        # s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
+        # server_info = MCAST_GRP, port
+
         if isinstance(message, DiscoveryMessage):
             print("[UDP Client]: Sending discovery message to {}".format(server_info))
         else:
@@ -80,4 +92,4 @@ class UdpClient:
         from netwolf.Serialization import serialize
         s.connect(server_info)  # address , port
         msg = serialize(message)
-        s.send(msg)
+        s.sendto(msg, server_info)
