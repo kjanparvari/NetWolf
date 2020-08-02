@@ -15,22 +15,25 @@ class LoadController:
             self._tickets -= 1
             t = addr, filename, False
             self._reserves.append(t)
-            threading.Thread(target=self._setup_req_timer, args=t).start()
+            threading.Thread(target=self._setup_req_timer, args=(addr, filename)).start()
+            print(f"[Load Controller]: request from {addr} for file {filename} added")
             return True
         else:
+            print(f"[Load Controller]: request from {addr} for file {filename} is not allowed")
             return False
 
     def confirm(self, addr, filename):
         for t in self._reserves:
             if t[0] == addr and t[1] == filename and t[2] is False:
                 self._reserves.remove(t)
+                print(f"[Load Controller]: Confirming request from {addr} for file {filename}")
                 return True
         return False
 
-    def _setup_req_timer(self, req):
+    def _setup_req_timer(self, addr, filename):
         time.sleep(self._WAIT_TIME)
         for t in self._reserves:
-            if t[0] == req[0] and t[1] == req[1] and t[2] is False:
+            if t[0] == addr and t[1] == filename and t[2] is False:
                 self._reserves.remove(t)
                 self._tickets += 1
                 break
