@@ -28,7 +28,6 @@ class UdpServer:
         print("[UDP Discovery Server]: Starting ...")
         while True:
             msg, (addr, port) = self._discovery_socket.recvfrom(1024)  # buffer size is 1024 bytes
-            print('hello')
             threading.Thread(target=self._handle_discovery_msg, args=(msg, addr, port)).start()
 
     def _handle_discovery_msg(self, msg, addr, port):

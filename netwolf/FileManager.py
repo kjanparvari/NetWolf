@@ -8,7 +8,9 @@ class FileManager(object):
     _MAX_WAIT_TIME = 5
 
     def __init__(self, manager):
+        from netwolf.Load import LoadController
         self._manager = manager
+        self._load_controller = LoadController(self._MAX_WAIT_TIME)
         self._get_msg_lock = False
         self._waiting_for_res = False
         self._requested_filename = ""
@@ -97,12 +99,13 @@ class FileManager(object):
         print(f"[File Manager]: {sender_addr} requested for a file named {msg.get_filename()}")
         filename = msg.get_filename()
         if self.exists(filename):
-            port = self._manager.get_tcp_client().reserve_port()
-            t = filename, sender_addr, port
-            self._requests.append(t)
-            from netwolf.FileRequests import ResMessage
-            res = ResMessage(port)
-            self._send_res_message(sender_addr, res)
+            if self._load_controller.reserve_ticket(sender_addr, filename):
+                port = self._manager.get_tcp_client().reserve_port()
+                t = filename, sender_addr, port
+                self._requests.append(t)
+                from netwolf.FileRequests import ResMessage
+                res = ResMessage(port)
+                self._send_res_message(sender_addr, res)
 
     def _send_res_message(self, dest_addr, msg):
         print(f"[File Manager]: telling {dest_addr} that requested file is existing")
@@ -126,14 +129,14 @@ class FileManager(object):
         self._manager.get_tcp_server().get_file(dest_addr, port, self._requested_filename)
 
     def receive_snd_message(self, sender_addr):
-
         found = False
         for t in self._requests:
             if t[1] == sender_addr:
                 found = True
+                self._load_controller.confirm(t[1], t[0])
                 self._manager.get_tcp_client().send_file(t[1], t[2], t[0])
                 print(
-                    f"[File Manager]: {sender_addr} will send the requested file ({self._requested_filename}) on port {t[2]}")
+                    f"[File Manager]: {sender_addr} will send the requested file ({t[0]}) on port {t[2]}")
                 break
         if not found:
             print("[Error]: error occurred in finding requested file")
