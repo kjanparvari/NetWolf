@@ -63,7 +63,7 @@ class Manager(object):
         # self._member_manager.remove_friend_list()
         # self._member_manager.printList()
         # self._file_manager.request_file("a.txt")
-        self._file_manager.request_file("a.txt")
+        # self._file_manager.request_file("a.txt")
         # self._tcp_server.get_file('192.168.1.105', 4040, 'a.txt')
         # self._tcp_client.send_file('192.168.1.105', 4040, 'a.txt')
         pass

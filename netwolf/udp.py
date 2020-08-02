@@ -13,7 +13,8 @@ class UdpServer:
 
         # setting up discovery server
         host_info = socket.gethostbyname(socket.gethostname()), UDP_DISCOVERY_PORT
-        self._discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        # host_info = socket.gethostbyname('0.0.0.0'), UDP_DISCOVERY_PORT
+        self._discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._discovery_socket.bind(host_info)
         threading.Thread(target=self._setup_discovery_server).start()
 
@@ -27,6 +28,7 @@ class UdpServer:
         print("[UDP Discovery Server]: Starting ...")
         while True:
             msg, (addr, port) = self._discovery_socket.recvfrom(1024)  # buffer size is 1024 bytes
+            print('hello')
             threading.Thread(target=self._handle_discovery_msg, args=(msg, addr, port)).start()
 
     def _handle_discovery_msg(self, msg, addr, port):

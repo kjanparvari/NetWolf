@@ -36,11 +36,10 @@ class TcpServer(object):
                 msg = decode(conn.recv(msg_length))
                 if str(msg, 'utf-8') == DISCONNECT_MESSAGE:
                     connected = False
+                    file.close()
                 else:
                     file.write(msg)
-                file.close()
-                from netwolf.Serialization import encode
-                conn.send(encode(bytes("[TCP]: File transmission was successfull", 'utf-8')))
+
         print(f"[TCP Server]: Disconnecting from {addr}")
         conn.close()
         self._manager.get_file_manager().receiving_file_finished()
@@ -93,7 +92,6 @@ class TcpClient(object):
         send_length = encode(bytes(send_length, 'utf-8'))
         self._socket.send(send_length)
         self._socket.send(message)
-        print(str(decode(self._socket.recv(2048))))
         message = encode(bytes(DISCONNECT_MESSAGE, 'utf-8'))
         send_length = str(msg_length)
         for i in range(0, HEADER - len(str(msg_length))):
@@ -102,6 +100,5 @@ class TcpClient(object):
         send_length = encode(bytes(send_length, 'utf-8'))
         self._socket.send(send_length)
         self._socket.send(message)
-        print(str(decode(self._socket.recv(2048)), 'utf-8'))
         print(f"[TCP Client]: Disconnecting from {server_address}")
         file.close()
