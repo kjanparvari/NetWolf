@@ -26,18 +26,20 @@ class TcpServer(object):
     def _handle_client(self, conn, addr, file=None):
         print(f"[TCP Server]: New connection from {addr} ")
         connected = True
+        from netwolf.Serialization import decode
         while connected:
-            msg_length = conn.recv(HEADER).decode(FORMAT)
+            msg_length = decode(conn.recv(HEADER))
             if msg_length:
                 msg_length = int(msg_length)
-                msg = conn.recv(msg_length).decode(FORMAT)
+                msg = decode(conn.recv(msg_length))
                 if msg == DISCONNECT_MESSAGE:
                     connected = False
                 else:
                     file.write(msg)
                 file.close()
                 print(f"[{addr}] {msg}")
-                conn.send("[TCP]: File transmission was successfull".encode(FORMAT))
+                from netwolf.Serialization import encode
+                conn.send(encode(bytes("[TCP]: File transmission was successfull")))
         conn.close()
         self._socket.close()
         self._manager.get_file_manager().receiving_file_finished()
@@ -75,23 +77,23 @@ class TcpClient(object):
         threading.Thread(target=self._send, args=(dest_addr, port, f)).start()
 
     def _send(self, server_address, port, file):
+        from netwolf.Serialization import encode, decode
         server_info = server_address, port
         message = file.read()
         self._socket.connect(server_info)
-        message = message.encode(FORMAT)
+        message = encode(bytes(message))
         msg_length = len(message)
-        send_length = str(msg_length).encode(FORMAT)
+        send_length = encode(bytes(msg_length))
         send_length += b' ' * (HEADER - len(send_length))
         self._socket.send(send_length)
         self._socket.send(message)
-        print(self._socket.recv(2048).decode(FORMAT))
-
-        message = DISCONNECT_MESSAGE.encode(FORMAT)
+        print(str(decode(self._socket.recv(2048))))
+        message = encode(bytes(DISCONNECT_MESSAGE))
         msg_length = len(message)
-        send_length = str(msg_length).encode(FORMAT)
+        send_length = encode(bytes(msg_length))
         send_length += b' ' * (HEADER - len(send_length))
         self._socket.send(send_length)
         self._socket.send(message)
-        print(self._socket.recv(2048).decode(FORMAT))
+        print(str(decode(self._socket.recv(2048))))
 
         file.close()

@@ -63,4 +63,5 @@ class Manager(object):
         # self._member_manager.remove_friend_list()
         # self._member_manager.printList()
         # self._file_manager.request_file("a.txt")
+        # self._file_manager.request_file("a.txt")
         pass

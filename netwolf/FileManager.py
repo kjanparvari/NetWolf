@@ -94,10 +94,10 @@ class FileManager(object):
         self._manager.broadcast(msg)
 
     def receive_get_message(self, msg, sender_addr):
-        print(f"[File Manager]: {sender_addr} requested for a file named {msg.get_file_name()}")
-        filename = msg.get_file_name()
+        print(f"[File Manager]: {sender_addr} requested for a file named {msg.get_filename()}")
+        filename = msg.get_filename()
         if self.exists(filename):
-            port = self._manager.get_udp_client().reserve_port()
+            port = self._manager.get_tcp_client().reserve_port()
             t = filename, sender_addr, port
             self._requests.append(t)
             from netwolf.FileRequests import ResMessage
@@ -123,7 +123,7 @@ class FileManager(object):
         from netwolf.FileRequests import SndMessage
         msg = SndMessage()
         self._manager.get_udp_client().send(str(dest_addr), msg)
-        self._manager.get_tcp_server(0).get_file(dest_addr, port, self._requested_filename)
+        self._manager.get_tcp_server().get_file(dest_addr, port, self._requested_filename)
 
     def receive_snd_message(self, sender_addr):
 

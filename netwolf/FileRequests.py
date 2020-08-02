@@ -10,6 +10,9 @@ class GetMessage(object):
     def get_filename(self):
         return self._filename
 
+    def __str__(self):
+        return f"get {self._filename}"
+
 
 class ResMessage(object):
 
@@ -23,9 +26,15 @@ class ResMessage(object):
     def get_port(self):
         return self._port
 
+    def __str__(self):
+        return f"res on port {self._port}"
+
 
 class SndMessage(object):
 
     def __bytes__(self):
         s = "snd$$$"
         return bytes(s, 'utf-8')
+
+    def __str__(self):
+        return "send"

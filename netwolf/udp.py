@@ -14,8 +14,8 @@ class UdpServer:
         self._manager = manager
 
         # setting up discovery server
-        # host_info = socket.gethostbyname(socket.gethostname()), UDP_DISCOVERY_PORT
-        host_info = socket.gethostbyname('0.0.0.0'), UDP_DISCOVERY_PORT
+        host_info = socket.gethostbyname(socket.gethostname()), UDP_DISCOVERY_PORT
+        # host_info = socket.gethostbyname('0.0.0.0'), UDP_DISCOVERY_PORT
 
         # self._discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # self._discovery_socket.bind(('', UDP_DISCOVERY_PORT))
@@ -80,10 +80,11 @@ class UdpClient:
     @staticmethod
     def _send(server_addr, message):
         from netwolf.Discovery import DiscoveryMessage
+        from netwolf.FileRequests import GetMessage, SndMessage, ResMessage
         port: int
         if isinstance(message, DiscoveryMessage):
             port = UDP_DISCOVERY_PORT
-        elif isinstance(message, str):
+        elif isinstance(message, GetMessage) or isinstance(message, SndMessage) or isinstance(message, ResMessage):
             port = UDP_MESSAGE_PORT
         else:
             return

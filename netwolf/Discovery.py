@@ -50,7 +50,7 @@ class DiscoveryManager(object):
     def _check_queue(self):
         while True:
             if len(self._receive_queue) != 0:
-                print(["[Discovery]: Got a Message"])
+                print("[Discovery]: Got a Message")
                 d: DiscoveryMessage = self._receive_queue.pop(0)
                 self._manager.get_member_manager().updateList(d.get_members())
 
