@@ -67,8 +67,9 @@ class DiscoveryManager(object):
     def timer(self):
         while True:
             time.sleep(self._PERIOD)
-            print("[Discovery Client]: Time to send")
+            print("[Discovery]: Time to send")
             friends = self._manager.get_member_manager().get_friend_list()
+            friends.append(self._manager.get_member_manager().get_current_member())
             msg = DiscoveryMessage(friends)
             self._manager.broadcast(msg)
             # friends = self._manager.get_member_manager().get_friend_list()
