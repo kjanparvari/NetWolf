@@ -59,7 +59,7 @@ class FileManager(object):
 
     def _choose_sender(self):
         if len(self._senders) == 0:
-            print("[File Manager]: No one had requested file ...")
+            print("[File Manager]: No one had the requested file ...")
             self.receiving_file_finished()
             return False
         else:

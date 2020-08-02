@@ -92,7 +92,7 @@ class MembersManager(object):
 
     def get_friend_list(self) -> List[Member]:
         lst = self._membersList.copy()
-        lst.remove(self.get_current_member())
+        # lst.remove(self.get_current_member())
         return lst
 
     def printList(self, lst: List[Member] = None):

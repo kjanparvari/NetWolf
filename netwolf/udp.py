@@ -4,8 +4,6 @@ import socket
 
 UDP_DISCOVERY_PORT = 7440
 UDP_MESSAGE_PORT = 7880
-MCAST_GRP = '224.1.1.1'
-MULTICAST_TTL = 2
 
 
 class UdpServer:
@@ -15,13 +13,6 @@ class UdpServer:
 
         # setting up discovery server
         host_info = socket.gethostbyname(socket.gethostname()), UDP_DISCOVERY_PORT
-        # host_info = socket.gethostbyname('0.0.0.0'), UDP_DISCOVERY_PORT
-
-        # self._discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # self._discovery_socket.bind(('', UDP_DISCOVERY_PORT))
-        # mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
-        # self._discovery_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
         self._discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self._discovery_socket.bind(host_info)
         threading.Thread(target=self._setup_discovery_server).start()
@@ -41,7 +32,7 @@ class UdpServer:
     def _handle_discovery_msg(self, msg, addr, port):
         from netwolf.Serialization import deserialize
         from netwolf.Discovery import DiscoveryMessage
-        print("[UDP Discovery Server]: New Discovery Connection from {}".format(addr))
+        print(f"[UDP Discovery Server]: New Discovery Connection from {addr}")
         res = deserialize(msg)
         if isinstance(res, DiscoveryMessage):
             self._manager.get_discovery_manager().enqueue(res)
@@ -90,14 +81,10 @@ class UdpClient:
             return
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_info = server_addr, port
-
-        # s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, MULTICAST_TTL)
-        # server_info = MCAST_GRP, port
-
         if isinstance(message, DiscoveryMessage):
-            print("[UDP Client]: Sending discovery message to {}".format(server_info))
+            print(f"[UDP Client]: Sending discovery message to {server_addr} on port {port}")
         else:
-            print("[UDP Client]: Sending message to {}".format(server_info))
+            print(f"[UDP Client]: Sending message to {server_addr} on port {port}")
         from netwolf.Serialization import serialize
         s.connect(server_info)  # address , port
         msg = serialize(message)

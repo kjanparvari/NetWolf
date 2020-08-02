@@ -1,3 +1,4 @@
+import time
 import threading
 import socket
 
@@ -33,7 +34,7 @@ class TcpServer(object):
                 msg_length = int(msg_length)
                 print(f"length: {msg_length}")
                 msg = decode(conn.recv(msg_length))
-                if msg == DISCONNECT_MESSAGE:
+                if str(msg, 'utf-8') == DISCONNECT_MESSAGE:
                     connected = False
                 else:
                     file.write(msg)
@@ -42,15 +43,15 @@ class TcpServer(object):
                 conn.send(encode(bytes("[TCP]: File transmission was successfull", 'utf-8')))
         print(f"[TCP Server]: Disconnecting from {addr}")
         conn.close()
-        self._socket.close()
         self._manager.get_file_manager().receiving_file_finished()
+        time.sleep(0.5)
+        self._socket.close()
 
     def _start(self, file):
         self._socket.listen()
         print(f"[TCP Server]: Server is listening on {self._server_info[0]}")
-        while True:
-            conn, addr = self._socket.accept()
-            threading.Thread(target=self._handle_client, args=(conn, addr, file)).start()
+        conn, addr = self._socket.accept()
+        threading.Thread(target=self._handle_client, args=(conn, addr, file)).start()
 
 
 class TcpClient(object):
