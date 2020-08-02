@@ -38,9 +38,9 @@ class TcpServer(object):
                 else:
                     file.write(msg)
                 file.close()
-                print(f"[{addr}] {msg}")
                 from netwolf.Serialization import encode
-                conn.send(encode(bytes("[TCP]: File transmission was successfull")))
+                conn.send(encode(bytes("[TCP]: File transmission was successfull", 'utf-8')))
+        print(f"[TCP Server]: Disconnecting from {addr}")
         conn.close()
         self._socket.close()
         self._manager.get_file_manager().receiving_file_finished()
@@ -75,9 +75,10 @@ class TcpClient(object):
 
     def send_file(self, dest_addr, port, filename):
         f = self._manager.get_file_manager().get_file(filename)
-        threading.Thread(target=self._send, args=(dest_addr, port, f)).start()
+        threading.Thread(target=self._send, args=(dest_addr, port, f, filename)).start()
 
-    def _send(self, server_address, port, file):
+    def _send(self, server_address, port, file, filename):
+        print(f"[TCP Client]: sending file{filename} to {server_address} on port {port}")
         from netwolf.Serialization import encode, decode
         server_info = server_address, port
         message = file.read()
@@ -92,12 +93,14 @@ class TcpClient(object):
         self._socket.send(send_length)
         self._socket.send(message)
         print(str(decode(self._socket.recv(2048))))
-        message = encode(bytes(DISCONNECT_MESSAGE))
-        msg_length = len(message)
-        send_length = encode(bytes(msg_length, 'utf-8'))
-        send_length += b' ' * (HEADER - len(send_length))
+        message = encode(bytes(DISCONNECT_MESSAGE, 'utf-8'))
+        send_length = str(msg_length)
+        for i in range(0, HEADER - len(str(msg_length))):
+            send_length += " "
+        # send_length += b' ' * (HEADER - len(send_length))
+        send_length = encode(bytes(send_length, 'utf-8'))
         self._socket.send(send_length)
         self._socket.send(message)
-        print(str(decode(self._socket.recv(2048))))
-
+        print(str(decode(self._socket.recv(2048)), 'utf-8'))
+        print(f"[TCP Client]: Disconnecting from {server_address}")
         file.close()
