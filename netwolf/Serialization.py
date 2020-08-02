@@ -3,6 +3,22 @@ from bitstring import BitArray
 from typing import List
 
 
+def encode(_bytes: bytes) -> bytes:
+    _bits = BitArray(_bytes)
+    for i in range(0, len(_bits)):
+        if i % 3 == 0:
+            _bits[i] = not _bits[i]
+    return _bits.bytes
+
+
+def decode(_bytes: bytes) -> bytes:
+    _bits = BitArray(_bytes)
+    for i in range(0, len(_bits)):
+        if i % 3 == 0:
+            _bits[i] = not _bits[i]
+    return _bits.bytes
+
+
 def serialize(obj):
     from netwolf.Members import Member
     _bytes: bytes
@@ -15,22 +31,24 @@ def serialize(obj):
             return b''
     else:
         _bytes = bytes(obj)
-    _bits = BitArray(_bytes)
-    for i in range(0, len(_bits)):
-        if i % 3 == 0:
-            _bits[i] = not _bits[i]
-    result = _bits.bytes
-    return result
+    return encode(_bytes)
+    # _bits = BitArray(_bytes)
+    # for i in range(0, len(_bits)):
+    #     if i % 3 == 0:
+    #         _bits[i] = not _bits[i]
+    # result = _bits.bytes
+    # return result
 
 
 def deserialize(message):
     try:
         from netwolf.Members import Member
-        _bits = BitArray(message)
-        for i in range(0, len(_bits)):
-            if i % 3 == 0:
-                _bits[i] = not _bits[i]
-        _bytes = _bits.bytes
+        # _bits = BitArray(message)
+        # for i in range(0, len(_bits)):
+        #     if i % 3 == 0:
+        #         _bits[i] = not _bits[i]
+        # _bytes = _bits.bytes
+        _bytes = decode(message)
         lst = str(_bytes, 'utf-8').split("$$$")
         if lst[0] == 'mem':
             res = []
