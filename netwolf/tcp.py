@@ -28,9 +28,10 @@ class TcpServer(object):
         connected = True
         from netwolf.Serialization import decode
         while connected:
-            msg_length = decode(conn.recv(HEADER))
+            msg_length = str(decode(conn.recv(HEADER)), 'utf-8')
             if msg_length:
                 msg_length = int(msg_length)
+                print(f"length: {msg_length}")
                 msg = decode(conn.recv(msg_length))
                 if msg == DISCONNECT_MESSAGE:
                     connected = False
@@ -83,14 +84,17 @@ class TcpClient(object):
         self._socket.connect(server_info)
         message = encode(bytes(message))
         msg_length = len(message)
-        send_length = encode(bytes(msg_length))
-        send_length += b' ' * (HEADER - len(send_length))
+        send_length = str(msg_length)
+        for i in range(0, HEADER - len(str(msg_length))):
+            send_length += " "
+        # send_length += b' ' * (HEADER - len(send_length))
+        send_length = encode(bytes(send_length, 'utf-8'))
         self._socket.send(send_length)
         self._socket.send(message)
         print(str(decode(self._socket.recv(2048))))
         message = encode(bytes(DISCONNECT_MESSAGE))
         msg_length = len(message)
-        send_length = encode(bytes(msg_length))
+        send_length = encode(bytes(msg_length, 'utf-8'))
         send_length += b' ' * (HEADER - len(send_length))
         self._socket.send(send_length)
         self._socket.send(message)
