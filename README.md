@@ -19,4 +19,5 @@ This project demonstrates the fundamentals of peer-to-peer networking and distri
 This project was developed as part of coursework to explore P2P systems and distributed computing concepts.  
 
 ## License  
-This project is licensed under the AUT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.  
+
